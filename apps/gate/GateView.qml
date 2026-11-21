@@ -9,8 +9,8 @@ import modules.wallpaper
 Item {
     id: root
 
-    // The shell: users, user, sessions, session, prompt, message, busy,
-    // submit(), selectUser(), selectSession(), powerAction(), failed.
+    // The shell: users, user, sessions, session, prompt, message, hint, busy,
+    // submit(), retry(), selectUser(), selectSession(), powerAction(), failed.
     required property var gate
 
     Wallpaper {
@@ -74,6 +74,7 @@ Item {
             echo: root.gate.promptEchoes
             busy: root.gate.busy
             onAccepted: text => root.gate.submit(text)
+            onAcceptedEmpty: root.gate.retry()
 
             Connections {
                 target: root.gate
@@ -87,8 +88,8 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             height: Fonts.size * 2
-            text: root.gate.message
-            color: root.gate.messageIsError ? Theme.primary : Theme.text
+            text: root.gate.message !== "" ? root.gate.message : root.gate.hint
+            color: root.gate.message !== "" && root.gate.messageIsError ? Theme.primary : Theme.text
             font {
                 family: Fonts.family
                 pixelSize: Fonts.size + 1

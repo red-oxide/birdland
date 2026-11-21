@@ -63,8 +63,8 @@ pamu2fcfg > ~/.config/Yubico/u2f_keys
 
 Touch the key to log in, or type your password. If nobody touches it in time,
 PAM moves on to the password; press Enter with nothing typed to try the key
-again. A password typed while the key is waiting is used once the key gives
-up. Logging in without a password also means a keyring unlocked by your login
+again. A password typed while the key is waiting is used once the key gives up.
+Logging in without a password also means a keyring unlocked by your login
 password (such as GNOME Keyring through PAM) stays locked.
 
 ### Setting up greetd yourself

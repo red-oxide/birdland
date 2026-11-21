@@ -9,6 +9,10 @@ import modules.util
 // Gate: the greeter. Runs under greetd inside cage (one window, so one
 // monitor), logs a user in and starts their chosen Wayland session.
 //
+// Logging in starts as soon as a user is selected, before anything is typed,
+// so PAM can wait for a security key touch or a fingerprint; a password typed
+// meanwhile is handed over when PAM asks for it.
+//
 // Settings come from GATE_CONFIG, a JSON file the NixOS module writes:
 //
 //   users           [{ name, realName }] to choose from
@@ -79,7 +83,14 @@ ShellRoot {
     property bool awaitingInput: false
     property string message: ""
     property bool messageIsError: false
-    readonly property bool busy: Greetd.state !== GreetdState.Inactive && !awaitingInput
+    // Information from PAM, such as "Please touch the device."; shown while
+    // there is no message.
+    property string hint: ""
+    // Something was entered for this login attempt, so the field waits.
+    property bool submitted: false
+    // PAM showed a hint during this attempt (likely a key or fingerprint).
+    property bool hadHint: false
+    readonly property bool busy: submitted && Greetd.state !== GreetdState.Inactive && !awaitingInput
     // Typed before greetd asked for it; handed over at its first question.
     property var pendingResponse: null
 
@@ -91,6 +102,26 @@ ShellRoot {
         reset();
         message = "";
         userIndex = index;
+        startSession();
+    }
+
+    // Enter with nothing typed: start over, for a key or fingerprint check
+    // that gave up waiting and moved on to the password.
+    function retry() {
+        if (submitted || pendingResponse !== null)
+            return;
+        if (Greetd.state !== GreetdState.Inactive)
+            Greetd.cancelSession();
+        reset();
+        message = "";
+        startSession();
+    }
+
+    // Start logging in the selected user, without waiting for a password.
+    function startSession() {
+        if (!Greetd.available || !user || Greetd.state !== GreetdState.Inactive)
+            return;
+        Greetd.createSession(user.name);
     }
 
     function selectSession(index) {
@@ -109,18 +140,31 @@ ShellRoot {
         }
         if (awaitingInput) {
             awaitingInput = false;
+            submitted = true;
             Greetd.respond(text);
+            return;
+        }
+        if (Greetd.state === GreetdState.Authenticating) {
+            // PAM hasn't asked yet (it may be waiting for a key touch).
+            if (pendingResponse === null) {
+                pendingResponse = text;
+                submitted = true;
+            }
             return;
         }
         if (Greetd.state !== GreetdState.Inactive)
             return;
         pendingResponse = text;
+        submitted = true;
         Greetd.createSession(user.name);
     }
 
     function reset() {
         pendingResponse = null;
+        submitted = false;
         awaitingInput = false;
+        hint = "";
+        hadHint = false;
         prompt = "Password";
         promptEchoes = false;
     }
@@ -154,19 +198,30 @@ ShellRoot {
                     root.pendingResponse = null;
                     Greetd.respond(response);
                 } else {
-                    // A further question, such as a one-time code.
+                    // The password, or a further question such as a
+                    // one-time code.
                     root.prompt = message.replace(/:\s*$/, "");
                     root.promptEchoes = echoResponse;
                     root.awaitingInput = true;
+                    root.hint = root.hadHint ? "Or press Enter to try your key again" : "";
                 }
-            } else if (message !== "") {
+            } else if (error) {
                 root.message = message;
-                root.messageIsError = error;
+                root.messageIsError = true;
+            } else if (message !== "") {
+                root.hint = message;
+                root.hadHint = true;
             }
         }
 
         function onAuthFailure(message) {
+            const tried = root.submitted;
             root.showError(message || "Incorrect password");
+            // Ready for the next try. A failure with nothing entered (a key
+            // check that timed out, with no password to fall back to) waits
+            // for Enter instead, so it doesn't repeat on its own.
+            if (tried)
+                restartSession.restart();
         }
 
         function onReadyToLaunch() {
@@ -177,6 +232,14 @@ ShellRoot {
         function onError(error) {
             root.showError(error);
         }
+    }
+
+    // After a failure, once greetd has closed the attempt.
+    Timer {
+        id: restartSession
+
+        interval: 500
+        onTriggered: root.startSession()
     }
 
     Process {
@@ -213,5 +276,7 @@ ShellRoot {
     Component.onCompleted: {
         if (!Greetd.available)
             console.warn("gate: greetd is not available (GREETD_SOCK is unset); logging in will not work");
+        else
+            startSession();
     }
 }

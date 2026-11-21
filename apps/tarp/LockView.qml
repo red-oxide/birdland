@@ -10,7 +10,7 @@ import modules.wallpaper
 Item {
     id: root
 
-    // The shell: prompt, message, busy, userName, submit(), failed.
+    // The shell: prompt, message, hint, busy, userName, submit(), failed.
     required property var lock
 
     Wallpaper {
@@ -85,8 +85,8 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             height: Fonts.size * 2
-            text: root.lock.message
-            color: root.lock.messageIsError ? Theme.primary : Theme.text
+            text: root.lock.message !== "" ? root.lock.message : root.lock.hint
+            color: root.lock.message !== "" && root.lock.messageIsError ? Theme.primary : Theme.text
             font {
                 family: Fonts.family
                 pixelSize: Fonts.size + 1

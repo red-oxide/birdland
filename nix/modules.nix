@@ -366,6 +366,18 @@
                   `security.pam.services.<name> = { };` to your NixOS configuration.
                 '';
               };
+              keyPamService = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                example = "birdland-tarp-key";
+                description = ''
+                  PAM service for unlocking with a security key (such as a YubiKey) or a
+                  fingerprint, checked the whole time the screen is locked beside the
+                  password. It must not ask for anything typed: for a YubiKey, add
+                  `security.pam.services.birdland-tarp-key = { u2fAuth = true; unixAuth = false; };`
+                  to your NixOS configuration. null unlocks with the password only.
+                '';
+              };
               wallpaper = lib.mkOption {
                 type = lib.types.nullOr wallpaperSource;
                 default = null;
@@ -390,7 +402,7 @@
                       sourceString cfg.outfield.wallpaper
                     else
                       null;
-                  inherit (cfg.tarp) pamService fill;
+                  inherit (cfg.tarp) pamService keyPamService fill;
                 }
               )}";
             };

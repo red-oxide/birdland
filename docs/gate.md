@@ -44,6 +44,29 @@ restart and shut down buttons.
 | `programs.birdland.gate.font.family` | string | `"Inter"` | Font family. |
 | `programs.birdland.gate.font.package` | package or null | `pkgs.inter` | Package providing the font. |
 
+### Logging in with a YubiKey
+
+Gate starts logging in as soon as a user is selected, so anything PAM waits for
+works without typing first. To log in with a touch of a security key, add
+[pam_u2f](https://developers.yubico.com/pam-u2f/) to greetd's PAM service and
+register the key (as your user):
+
+```nix
+security.pam.u2f.settings.cue = true;  # shows "Please touch the device."
+security.pam.services.greetd.u2fAuth = true;
+```
+
+```sh
+mkdir -p ~/.config/Yubico
+pamu2fcfg > ~/.config/Yubico/u2f_keys
+```
+
+Touch the key to log in, or type your password. If nobody touches it in time,
+PAM moves on to the password; press Enter with nothing typed to try the key
+again. A password typed while the key is waiting is used once the key gives
+up. Logging in without a password also means a keyring unlocked by your login
+password (such as GNOME Keyring through PAM) stays locked.
+
 ### Setting up greetd yourself
 
 The module above is the easy route. To wire greetd, cage and Gate together

@@ -21,6 +21,26 @@ Unreleased. Routine flake input updates and formatting commits are left out.
   every file, `REUSE.toml` for `qmldir` and `flake.lock`, and a `reuse` flake
   check.
 
+### 2026-11-21
+
+#### Added
+
+- tarp: unlock with a security key such as a YubiKey (or a fingerprint) beside
+  the password: `programs.birdland.tarp.keyPamService` (`TARP_KEY_PAM_SERVICE`)
+  names a PAM service checked the whole time the screen is locked.
+- gate: log in with a security key or fingerprint set up in greetd's PAM
+  service; Enter with nothing typed tries the key again.
+
+#### Changed
+
+- gate: logging in starts as soon as a user is selected, not when Enter is
+  pressed, so PAM can wait for a key touch; a password typed meanwhile is handed
+  over when PAM asks for it.
+
+#### Fixed
+
+- tarp: a PAM error is shown as such instead of "Incorrect password".
+
 ### 2026-11-11
 
 #### Added

@@ -130,5 +130,6 @@ Import the Home Manager module provided by the flake and enable the suite:
 | `programs.birdland.tarp.screenOffAfter` | integer or null | `15` | Minutes without input before the monitors turn off; `null` leaves them on. |
 | `programs.birdland.tarp.swayidle` | boolean | `true` | Set up swayidle to lock on idle, before sleep and on `loginctl lock-session`. |
 | `programs.birdland.tarp.pamService` | string | `"login"` | PAM service that checks the password. |
+| `programs.birdland.tarp.keyPamService` | string or null | `null` | PAM service for unlocking with a security key or fingerprint; see [Tarp](tarp.md). |
 | `programs.birdland.tarp.wallpaper` | path / string or null | `null` | Image or folder behind the lock; `null` uses Outfield's. |
 | `programs.birdland.tarp.fill` | enum | Outfield's | How the wallpaper fits the screen. |

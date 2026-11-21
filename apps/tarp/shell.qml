@@ -11,7 +11,8 @@ import modules.util
 
 // Tarp: the lock screen. It runs in the background and locks every monitor
 // with `birdland-tarp ipc call tarp lock`; the user's password, checked by
-// PAM, unlocks it. There is deliberately no IPC call that unlocks.
+// PAM, unlocks it, and so does a touch of a security key (or a fingerprint)
+// when keyPamService is set. There is deliberately no IPC call that unlocks.
 //
 // If tarp dies while locked, the compositor keeps the screens locked. A
 // state file in $XDG_RUNTIME_DIR records that, so the next tarp (systemd
@@ -20,10 +21,13 @@ import modules.util
 // Settings come from TARP_CONFIG, a JSON file (the Home Manager module writes
 // one), or else from single environment variables:
 //
-//   JSON key    variable           meaning
-//   pamService  TARP_PAM_SERVICE   PAM service in /etc/pam.d (default "login")
-//   wallpaper   TARP_WALLPAPER     image or folder behind the lock ("~/" = home)
-//   fill        -                  wallpaper fill: fill, fit, stretch, center, tile
+//   JSON key       variable              meaning
+//   pamService     TARP_PAM_SERVICE      PAM service in /etc/pam.d (default "login")
+//   keyPamService  TARP_KEY_PAM_SERVICE  PAM service that asks for nothing typed,
+//                                        such as pam_u2f alone; run the whole time
+//                                        the screen is locked (default: none)
+//   wallpaper      TARP_WALLPAPER        image or folder behind the lock ("~/" = home)
+//   fill           -                     wallpaper fill: fill, fit, stretch, center, tile
 ShellRoot {
     id: root
 
@@ -36,6 +40,7 @@ ShellRoot {
     readonly property var config: settings.values
 
     readonly property string pamService: config.pamService ?? Env.get("TARP_PAM_SERVICE", "login")
+    readonly property string keyPamService: config.keyPamService ?? Env.get("TARP_KEY_PAM_SERVICE", "")
     readonly property string wallpaper: Env.expandHome(String(config.wallpaper ?? Env.get("TARP_WALLPAPER")))
     readonly property string fill: String(config.fill ?? "fill")
     readonly property string userName: Env.get("USER")
@@ -45,6 +50,12 @@ ShellRoot {
     property bool promptEchoes: false
     property string message: ""
     property bool messageIsError: false
+    // From the key check, such as "Please touch the device."; shown while
+    // there is no message.
+    property string hint: ""
+    // Set when the key check can't work (the service is missing or asks for
+    // something typed); it is tried again at the next lock.
+    property bool keyCheckBroken: false
     readonly property bool busy: pam.active && !pam.responseRequired
     // Typed before PAM asked for it; handed over at PAM's first question.
     property var pendingResponse: null
@@ -56,8 +67,21 @@ ShellRoot {
             return;
         reset();
         message = "";
+        hint = "";
+        keyCheckBroken = false;
         stateFile.setText("locked\n");
         sessionLock.locked = true;
+        startKeyCheck();
+    }
+
+    function startKeyCheck() {
+        if (keyPamService === "" || keyCheckBroken || !sessionLock.locked || keyPam.active)
+            return;
+        keyPam.startedAt = Date.now();
+        if (!keyPam.start()) {
+            keyCheckBroken = true;
+            console.warn("tarp: could not start the key check (PAM service \"" + keyPamService + "\")");
+        }
     }
 
     function submit(text) {
@@ -89,8 +113,14 @@ ShellRoot {
     }
 
     function unlock() {
+        keyRetry.stop();
+        if (keyPam.active)
+            keyPam.abort();
+        if (pam.active)
+            pam.abort();
         reset();
         message = "";
+        hint = "";
         sessionLock.locked = false;
         stateFile.setText("unlocked\n");
     }
@@ -120,11 +150,52 @@ ShellRoot {
         onCompleted: result => {
             if (result === PamResult.Success)
                 root.unlock();
-            else
+            else if (result !== PamResult.Error) // onError has said why
                 root.showError(result === PamResult.MaxTries ? "Too many attempts" : "Incorrect password");
         }
 
         onError: error => root.showError("Authentication error: " + PamError.toString(error))
+    }
+
+    // The key check: beside the password check, for the whole time the screen
+    // is locked, so a touch unlocks without typing anything. An attempt ends
+    // when the device stops waiting for a touch (or at once with no device
+    // plugged in), and the next starts shortly after.
+    PamContext {
+        id: keyPam
+
+        property double startedAt: 0
+
+        config: root.keyPamService
+
+        onPamMessage: {
+            if (responseRequired) {
+                // A PIN or password: typing goes to the password check.
+                console.warn("tarp: PAM service \"" + root.keyPamService + "\" asked for input (\"" + message + "\"); the key check needs one that asks for nothing typed");
+                root.keyCheckBroken = true;
+                abort();
+            } else if (message !== "") {
+                root.hint = message;
+            }
+        }
+
+        onCompleted: result => {
+            if (result === PamResult.Success) {
+                root.unlock();
+                return;
+            }
+            // Over at once: no device plugged in, so drop a stale hint.
+            if (Date.now() - startedAt < 2000)
+                root.hint = "";
+            keyRetry.restart();
+        }
+    }
+
+    Timer {
+        id: keyRetry
+
+        interval: 2000
+        onTriggered: root.startKeyCheck()
     }
 
     // "locked" while locked; see the comment at the top.

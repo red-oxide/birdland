@@ -4,7 +4,8 @@ import QtQuick
 import modules.theme
 
 // A rounded entry for passwords and other login prompts. Enter emits
-// `accepted(text)` and clears the field at once, so the text never lingers.
+// `accepted(text)` and clears the field at once, so the text never lingers;
+// Enter with nothing typed emits `acceptedEmpty()` instead.
 Rectangle {
     id: root
 
@@ -16,6 +17,7 @@ Rectangle {
     property bool error: false
 
     signal accepted(string text)
+    signal acceptedEmpty
 
     function focusInput() {
         input.forceActiveFocus();
@@ -85,8 +87,10 @@ Rectangle {
         onTextEdited: root.error = false
         // An empty submission would only count as a failed attempt.
         onAccepted: {
-            if (text === "")
+            if (text === "") {
+                root.acceptedEmpty();
                 return;
+            }
             const value = text;
             text = "";
             root.accepted(value);

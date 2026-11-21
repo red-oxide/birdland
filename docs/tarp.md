@@ -19,9 +19,9 @@ NixOS configuration and set `tarp.pamService = "birdland-tarp";`.
 ### Unlocking with a YubiKey
 
 Tarp can also unlock with a touch of a security key, beside the password. It
-uses a second PAM service with only [pam_u2f](https://developers.yubico.com/pam-u2f/)
-in it, and keeps it waiting for a touch the whole time the screen is locked. In
-your NixOS configuration:
+uses a second PAM service with only
+[pam_u2f](https://developers.yubico.com/pam-u2f/) in it, and keeps it waiting
+for a touch the whole time the screen is locked. In your NixOS configuration:
 
 ```nix
 security.pam.u2f.settings.cue = true;  # shows "Please touch the device."
@@ -45,8 +45,8 @@ and in Home Manager:
 programs.birdland.tarp.keyPamService = "birdland-tarp-key";
 ```
 
-The key service must not ask for anything typed (so no `pinverification`); if
-it does, Tarp stops using it and logs a warning. Don't turn on
+The key service must not ask for anything typed (so no `pinverification`); if it
+does, Tarp stops using it and logs a warning. Don't turn on
 `security.pam.u2f.enable` for the whole system unless you want the key in every
 service, `login` included: Tarp's password check would then wait for a touch
 before it takes the password. A fingerprint reader works the same way, with a

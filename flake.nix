@@ -2,6 +2,16 @@
 {
   description = "Quickshell desktop shell for Niri";
 
+  # Builds from this flake's CI. Used by `nix build`/`nix run` on this flake
+  # (after accepting the prompt); a flake that takes this one as an input
+  # must add the cache to its own nix.settings instead.
+  nixConfig = {
+    extra-substituters = [ "https://red-oxide.cachix.org" ];
+    extra-trusted-public-keys = [
+      "red-oxide.cachix.org-1:kX7CnXH4XIGlSiCojVBNK3zcka8p2po2PnfNToDYauI="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     base24-themes = {

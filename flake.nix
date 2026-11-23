@@ -26,6 +26,12 @@
       url = "github:red-oxide/devfmt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Only for the flake check that evaluates the Home Manager module; the
+    # module itself doesn't use it.
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";

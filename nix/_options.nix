@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
 # SPDX-License-Identifier: GPL-3.0-only
 # Options and helpers shared by the Home Manager and NixOS modules. The leading
 # underscore keeps import-tree from loading this file as a flake module.

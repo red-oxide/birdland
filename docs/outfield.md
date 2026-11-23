@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
+SPDX-License-Identifier: GPL-3.0-only
+-->
+
 ## Outfield wallpapers
 
 Outfield draws a wallpaper on every monitor, in place of tools like `swaybg`.

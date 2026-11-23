@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
+SPDX-License-Identifier: GPL-3.0-only
+-->
+
 ## Theming
 
 Birdland translates [Base24](https://github.com/tinted-theming/base24) color

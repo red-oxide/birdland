@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
+SPDX-License-Identifier: GPL-3.0-only
+-->
+
 ## Jumbotron pop-ups
 
 Jumbotron shows a short pop-up on the focused monitor when the volume, the

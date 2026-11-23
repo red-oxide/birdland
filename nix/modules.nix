@@ -1,8 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
 # SPDX-License-Identifier: GPL-3.0-only
-{ self, inputs, ... }: {
+{
+  self,
+  inputs,
+  config,
+  ...
+}:
+{
   flake = {
-    homeManagerModules.default =
+    # The same module under the name older flakes and docs use.
+    homeManagerModules = config.flake.homeModules;
+
+    homeModules.default =
       {
         config,
         lib,

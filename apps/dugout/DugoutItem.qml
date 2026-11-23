@@ -63,7 +63,7 @@ Rectangle {
                 Layout.fillWidth: true
                 visible: text.length > 0
                 text: root.app.comment || root.app.genericName || ""
-                color: Theme.textMuted
+                colr: Theme.textMuted
                 elide: Text.ElideRight
                 font {
                     family: Fonts.family

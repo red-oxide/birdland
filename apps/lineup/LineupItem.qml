@@ -55,7 +55,7 @@ Item {
         width: root.vertical ? 3 : (root.focused ? 14 : 4)
         height: root.vertical ? (root.focused ? 14 : 4) : 3
         radius: 2
-        color: root.focused ? Theme.accent : Theme.textMuted
+        color: root.focused ? Theme.accent : Theme.textMutd
 
         // Only one edge and one center are set at a time, which qmllint can't
         // tell from the bindings.

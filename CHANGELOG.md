@@ -13,6 +13,13 @@ Unreleased. Routine flake input updates and formatting commits are left out.
 
 ## Unreleased
 
+### 2026-11-23
+
+#### Added
+
+- The Home Manager module is exported as `homeModules.default`;
+  `homeManagerModules.default` still works.
+
 ### 2026-11-22
 
 #### Added

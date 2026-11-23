@@ -5,12 +5,14 @@ SPDX-License-Identifier: GPL-3.0-only
 
 ## Home Manager Module Usage
 
-Import the Home Manager module provided by the flake and enable the suite:
+Import the Home Manager module provided by the flake and enable the suite. It is
+`homeModules.default`, also exported as `homeManagerModules.default` for older
+configurations:
 
 ```nix
 { inputs, pkgs, ... }: {
   imports = [
-    inputs.birdland.homeManagerModules.default
+    inputs.birdland.homeModules.default
   ];
 
   programs.birdland = {

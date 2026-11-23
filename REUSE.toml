@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
+# SPDX-License-Identifier: GPL-3.0-only
+
+# Licensing for files that cannot carry a header. See https://reuse.software.
+# The code, build files and docs are GPL-3.0-only; the birdland mark under
+# docs/assets is CC-BY-SA-4.0. Each file's own SPDX header says which.
+version = 1
+
+[[annotations]]
+SPDX-FileCopyrightText  = "2026 Chris Palmer <chris@red-oxide.org>"
+SPDX-License-Identifier = "GPL-3.0-only"
+path                    = ["flake.lock", "modules/*/qmldir"]

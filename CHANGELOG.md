@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
+SPDX-License-Identifier: GPL-3.0-only
+-->
+
 # Changelog
 
 All notable changes to Birdland are recorded here. The format is based on
@@ -7,6 +12,14 @@ Birdland has no tagged releases yet, so changes are grouped by date under
 Unreleased. Routine flake input updates and formatting commits are left out.
 
 ## Unreleased
+
+### 2026-11-22
+
+#### Added
+
+- The repo is [REUSE](https://reuse.software)-compliant: copyright lines on
+  every file, `REUSE.toml` for `qmldir` and `flake.lock`, and a `reuse` flake
+  check.
 
 ### 2026-11-11
 

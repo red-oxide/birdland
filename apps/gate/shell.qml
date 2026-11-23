@@ -22,12 +22,12 @@ ShellRoot {
     id: root
 
     JsonSettings {
-        id: settings
+        id: gateSettings
 
         variable: "GATE_CONFIG"
     }
 
-    readonly property var config: settings.values
+    readonly property var config: gateSettings.values
 
     readonly property var users: config.users ?? []
     readonly property bool power: config.power ?? true

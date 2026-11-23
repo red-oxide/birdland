@@ -38,6 +38,9 @@ GridLayout {
 
             required property var modelData
 
+            // itemAt() is typed as Item; the slots are ours and have shown,
+            // item and stretches.
+            // qmllint disable missing-property
             // Shown while any of its modules has something to show. Worked out
             // from the modules rather than the layout, which leaves hidden
             // items out and would keep a hidden island hidden.
@@ -57,6 +60,7 @@ GridLayout {
                 }
                 return false;
             }
+            // qmllint enable missing-property
             readonly property real padding: bare ? 0 : root.islandPadding
             // Length along the bar with every module at its natural size.
             readonly property real naturalLength: Math.ceil(root.owner.vertical ? modules.implicitHeight : modules.implicitWidth) + 2 * padding

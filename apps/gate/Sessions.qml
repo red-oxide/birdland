@@ -38,6 +38,9 @@ Item {
     function rebuild() {
         const list = [];
         for (let i = 0; i < readers.count; i++) {
+            // objectAt() is typed as QObject; the readers are ours and have
+            // ready, text() and sessionId.
+            // qmllint disable missing-property
             const reader = readers.objectAt(i);
             if (!reader || !reader.ready)
                 continue;
@@ -50,6 +53,7 @@ Item {
                 exec: entry.Exec,
                 desktopNames: (entry.DesktopNames || "").split(";").filter(s => s !== "").join(":")
             });
+            // qmllint enable missing-property
         }
         list.sort((a, b) => a.name.localeCompare(b.name));
         sessions = list;

@@ -120,7 +120,8 @@ ShellRoot {
                 left: root.edge === "left"
                 right: root.edge === "right"
             }
-            margins {
+            // Quickshell's type information doesn't describe margins.
+            margins { // qmllint disable unresolved-type
                 top: 72
                 bottom: 72
                 left: 72

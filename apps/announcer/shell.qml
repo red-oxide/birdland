@@ -81,7 +81,8 @@ ShellRoot {
                 left: root.atLeft
                 right: !root.atLeft
             }
-            margins {
+            // Quickshell's type information doesn't describe margins.
+            margins { // qmllint disable unresolved-type
                 top: Theme.spacingMedium
                 bottom: Theme.spacingMedium
                 left: Theme.spacingMedium

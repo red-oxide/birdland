@@ -220,7 +220,8 @@ PanelWindow {
                 if (!window)
                     return false;
                 const workspaces = niri.workspaces;
-                workspaces.count; // re-evaluate as workspaces come and go
+                // Read count so this re-evaluates as workspaces come and go.
+                workspaces.count; // qmllint disable confusing-expression-statement
                 const i = workspaces.indexOfId(window.workspaceId);
                 return i < 0 || !bar.screen || workspaces.get(i).output === bar.screen.name;
             }

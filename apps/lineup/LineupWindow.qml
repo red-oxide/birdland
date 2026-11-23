@@ -93,7 +93,8 @@ PanelWindow {
     }
 
     // Float slightly off the screen edge.
-    margins {
+    // Quickshell's type information doesn't describe margins.
+    margins { // qmllint disable unresolved-type
         top: edge === "top" ? Theme.spacingMedium : 0
         bottom: edge === "bottom" ? Theme.spacingMedium : 0
         left: edge === "left" ? Theme.spacingMedium : 0

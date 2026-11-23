@@ -37,8 +37,10 @@ individually or as a complete suite:
   status indicators for CPU, memory, GPU, temperature, weather, network, volume,
   microphone and battery, plus toggles for do not disturb and keeping the
   session awake.
-- **`dugout`**: A quick application launcher that opens on the focused monitor.
-- **`lineup`**: A dock of favorite and running apps on every monitor.
+- **[`dugout`](./docs/dugout.md)**: A quick application launcher that opens on
+  the focused monitor.
+- **[`lineup`](./docs/lineup.md)**: A dock of favorite and running apps on every
+  monitor.
 - **[`outfield`](./docs/outfield.md)**: Wallpapers on every monitor: an image,
   or a folder that rotates, with optional per-monitor choices.
 - **[`announcer`](./docs/announcer.md)**: Notification popups on the focused

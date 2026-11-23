@@ -57,6 +57,9 @@ Item {
         radius: 2
         color: root.focused ? Theme.accent : Theme.textMuted
 
+        // Only one edge and one center are set at a time, which qmllint can't
+        // tell from the bindings.
+        // qmllint disable Quick.anchor-combinations
         anchors {
             top: root.edge === "top" ? parent.top : undefined
             bottom: root.edge === "bottom" ? parent.bottom : undefined
@@ -65,6 +68,7 @@ Item {
             horizontalCenter: root.vertical ? undefined : parent.horizontalCenter
             verticalCenter: root.vertical ? parent.verticalCenter : undefined
         }
+        // qmllint enable Quick.anchor-combinations
     }
 
     MouseArea {

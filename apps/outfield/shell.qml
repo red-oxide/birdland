@@ -26,12 +26,12 @@ ShellRoot {
     id: root
 
     JsonSettings {
-        id: settings
+        id: outfieldSettings
 
         variable: "OUTFIELD_CONFIG"
     }
 
-    readonly property var config: settings.values
+    readonly property var config: outfieldSettings.values
 
     readonly property string wallpaper: Env.expandHome(String(config.wallpaper ?? Env.get("OUTFIELD_WALLPAPER")))
     readonly property var outputs: config.outputs ?? {}

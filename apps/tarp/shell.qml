@@ -28,12 +28,12 @@ ShellRoot {
     id: root
 
     JsonSettings {
-        id: settings
+        id: tarpSettings
 
         variable: "TARP_CONFIG"
     }
 
-    readonly property var config: settings.values
+    readonly property var config: tarpSettings.values
 
     readonly property string pamService: config.pamService ?? Env.get("TARP_PAM_SERVICE", "login")
     readonly property string wallpaper: Env.expandHome(String(config.wallpaper ?? Env.get("TARP_WALLPAPER")))

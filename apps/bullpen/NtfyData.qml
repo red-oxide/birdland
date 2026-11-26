@@ -139,7 +139,9 @@ Scope {
         property string url
 
         command: ["sh", "-c", "if [ -n \"$NTFY_TOKEN\" ]; then printf 'header = \"Authorization: Bearer %s\"\\n' \"$NTFY_TOKEN\"; fi | exec curl --silent --show-error --no-buffer --fail --config - -- \"$0\"", stream.url]
-        environment: ({
+        // Quickshell takes a JS object here; qmllint wants a QVariantHash,
+        // which QML can't write as a literal.
+        environment: ({ // qmllint disable incompatible-type
                 NTFY_TOKEN: root.token
             })
 

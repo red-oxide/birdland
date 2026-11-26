@@ -141,9 +141,11 @@ Scope {
         command: ["sh", "-c", "if [ -n \"$NTFY_TOKEN\" ]; then printf 'header = \"Authorization: Bearer %s\"\\n' \"$NTFY_TOKEN\"; fi | exec curl --silent --show-error --no-buffer --fail --config - -- \"$0\"", stream.url]
         // Quickshell takes a JS object here; qmllint wants a QVariantHash,
         // which QML can't write as a literal.
-        environment: ({ // qmllint disable incompatible-type
+        // qmllint disable incompatible-type
+        environment: ({
                 NTFY_TOKEN: root.token
             })
+        // qmllint enable incompatible-type
 
         stdout: SplitParser {
             onRead: line => root.handle(line)

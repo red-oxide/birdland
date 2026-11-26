@@ -33,6 +33,7 @@ ShellRoot {
             stats: sharedStats
             weather: sharedWeather
             feeds: sharedFeeds
+            ntfy: sharedNtfy
             networkd: sharedNetworkd
             dnd: sharedDnd
             idle: sharedIdle
@@ -69,6 +70,19 @@ ShellRoot {
         interval: Math.max(30, Number(Env.get("BULLPEN_FEEDS_INTERVAL", "120")) || 120)
         notifications: Env.get("BULLPEN_FEEDS_NOTIFICATIONS", "true") !== "false"
         openCommand: Env.get("BULLPEN_FEEDS_COMMAND", "xdg-terminal-exec pressbox")
+    }
+
+    // One ntfy subscription for all bars. It runs whenever topics are set,
+    // with or without the indicator in a layout, so messages still arrive
+    // as notifications.
+    NtfyData {
+        id: sharedNtfy
+
+        server: Env.get("BULLPEN_NTFY_SERVER", "https://ntfy.sh")
+        topics: Env.list("BULLPEN_NTFY_TOPICS")
+        tokenFile: Env.expandHome(Env.get("BULLPEN_NTFY_TOKEN_FILE"))
+        notifications: Env.get("BULLPEN_NTFY_NOTIFICATIONS", "true") !== "false"
+        openCommand: Env.get("BULLPEN_NTFY_COMMAND")
     }
 
     // One networkctl poll for all bars, while any of them shows the network

@@ -111,6 +111,11 @@ configurations:
 | `programs.birdland.bullpen.feeds.command` | string | `"xdg-terminal-exec pressbox"` | Shell command run by clicking the `feeds` indicator. |
 | `programs.birdland.bullpen.feeds.interval` | integer | `120` | Seconds between unread-count checks. |
 | `programs.birdland.bullpen.feeds.notifications` | boolean | `true` | Notify when new feed items arrive. |
+| `programs.birdland.bullpen.ntfy.server` | string | `"https://ntfy.sh"` | ntfy server to subscribe to. |
+| `programs.birdland.bullpen.ntfy.topics` | list of strings | `[]` | Topics to subscribe to; messages become notifications. |
+| `programs.birdland.bullpen.ntfy.tokenFile` | string or null | `null` | File holding an ntfy access token, for protected topics. |
+| `programs.birdland.bullpen.ntfy.notifications` | boolean | `true` | Send each ntfy message on as a notification. |
+| `programs.birdland.bullpen.ntfy.command` | string or null | `null` | Shell command run by clicking the `ntfy` indicator; `null` opens the server's web app. |
 | `programs.birdland.dugout.enable` | boolean | `false` | Enable the Dugout app launcher. |
 | `programs.birdland.lineup.enable` | boolean | `false` | Enable the Lineup favorite apps dock. |
 | `programs.birdland.lineup.position` | enum | `"bottom"` | Screen edge (`top`, `bottom`, `left`, `right`). |

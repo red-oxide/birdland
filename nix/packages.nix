@@ -74,16 +74,20 @@
       apps = rec {
         bullpen = mkApp {
           name = "bullpen";
-          # notify-send, for the feeds indicator's new-item notifications, and
-          # networkctl, for the network indicator without NetworkManager. Suffixed
-          # so the system's own networkctl, matching its systemd, comes first.
+          # notify-send, for the feeds and ntfy notifications; curl, for the ntfy
+          # subscription; xdg-open, for the ntfy indicator's click; and
+          # networkctl, for the network indicator without NetworkManager.
+          # Suffixed so the system's own tools (networkctl matching its
+          # systemd) come first.
           wrapperArgs = [
             "--suffix"
             "PATH"
             ":"
             "${lib.makeBinPath [
+              pkgs.curl
               pkgs.libnotify
               pkgs.systemd
+              pkgs.xdg-utils
             ]}"
           ];
         };

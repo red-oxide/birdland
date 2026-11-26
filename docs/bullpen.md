@@ -45,8 +45,9 @@ to fit; outside the center it is capped at a quarter of the bar.
 | `idle-inhibitor` | Whether idle is inhibited; click keeps the session awake, or lets it idle | A compositor with idle-inhibit (Niri has it) |
 
 Modules with nothing to show (no battery, no GPU sensor, no weather location, no
-media player, no tray icons, no paired pressbox, no ntfy topics) hide themselves. Icons come
-from the Symbols Nerd Font, which the Home Manager module installs.
+media player, no tray icons, no paired pressbox, no ntfy topics) hide
+themselves. Icons come from the Symbols Nerd Font, which the Home Manager module
+installs.
 
 The `feeds` indicator shows unread items on a
 [pressbox](https://github.com/red-oxide/pressbox) server. It reads the server
@@ -79,11 +80,11 @@ Bullpen isn't running are not fetched when it starts. Priority 5 ("max")
 messages are critical notifications, which stay until dismissed and get through
 do not disturb; priority 1 and 2 are low.
 
-The `ntfy` indicator shows a dim speech bubble while nothing is new, a bright one
-with the number of messages since you last clicked it, and a red `!` while the
-server can't be reached or rejects the token. Click opens the server's web app
-(or runs `ntfy.command`); right click just marks everything seen. The token is
-handed to curl through its environment, never its command line.
+The `ntfy` indicator shows a dim speech bubble while nothing is new, a bright
+one with the number of messages since you last clicked it, and a red `!` while
+the server can't be reached or rejects the token. Click opens the server's web
+app (or runs `ntfy.command`); right click just marks everything seen. The token
+is handed to curl through its environment, never its command line.
 
 The `dnd` indicator shows a dim bell while notifications show and a bright
 crossed-out bell while Announcer holds them back; click to switch. It is the

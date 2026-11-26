@@ -515,14 +515,17 @@
               programs.birdland.announcer and services.mako or services.dunst are both
               notification servers, and only one can run; disable one of them.
             ''
-            ++ lib.optional (
-              cfg.bullpen.enable
-              && lib.elem "ntfy" (lib.flatten (with cfg.bullpen.layout; left ++ center ++ right))
-              && cfg.bullpen.ntfy.topics == [ ]
-            ) ''
-              programs.birdland.bullpen.layout has the ntfy indicator, but
-              programs.birdland.bullpen.ntfy.topics is empty, so it stays hidden.
-            '';
+            ++
+              lib.optional
+                (
+                  cfg.bullpen.enable
+                  && lib.elem "ntfy" (lib.flatten (with cfg.bullpen.layout; left ++ center ++ right))
+                  && cfg.bullpen.ntfy.topics == [ ]
+                )
+                ''
+                  programs.birdland.bullpen.layout has the ntfy indicator, but
+                  programs.birdland.bullpen.ntfy.topics is empty, so it stays hidden.
+                '';
 
           # Lock after inactivity, before sleep and on `loginctl lock-session`.
           services.swayidle = lib.mkIf (cfg.tarp.enable && cfg.tarp.swayidle) {

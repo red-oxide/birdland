@@ -51,6 +51,7 @@ PanelWindow {
             tray: trayModule,
             media: mediaModule,
             feeds: feedsModule,
+            ntfy: ntfyModule,
             dnd: dndModule,
             "idle-inhibitor": idleInhibitorModule
         })
@@ -181,6 +182,8 @@ PanelWindow {
     // Unread feed items, also shared.
     required property FeedsData feeds
     readonly property bool usesFeeds: allModules.includes("feeds")
+    // ntfy messages, also shared.
+    required property NtfyData ntfy
     // systemd-networkd's links, also shared.
     required property NetworkData networkd
     readonly property bool usesNetwork: allModules.includes("network")
@@ -335,6 +338,13 @@ PanelWindow {
         id: feedsModule
         Feeds {
             feeds: bar.feeds
+            vertical: bar.vertical
+        }
+    }
+    Component {
+        id: ntfyModule
+        Ntfy {
+            ntfy: bar.ntfy
             vertical: bar.vertical
         }
     }

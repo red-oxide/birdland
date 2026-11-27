@@ -37,7 +37,17 @@
               "microphone"
             ]
             "feeds"
+            "ntfy"
           ];
+          ntfy = {
+            server = "https://ntfy.example.org";
+            topics = [
+              "alerts"
+              "backups"
+            ];
+            tokenFile = "~/.config/ntfy/token";
+            command = "foot";
+          };
           units = "imperial";
           weather = {
             latitude = 39.28;

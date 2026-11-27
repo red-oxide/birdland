@@ -36,7 +36,8 @@ individually or as a complete suite:
   workspaces, the focused window, a clock, the media player, tray icons, and
   status indicators for CPU, memory, GPU, temperature, weather, network, volume,
   microphone and battery, plus toggles for do not disturb and keeping the
-  session awake.
+  session awake. It can also subscribe to [ntfy](https://ntfy.sh) topics and
+  show their messages as notifications.
 - **[`dugout`](./docs/dugout.md)**: A quick application launcher that opens on
   the focused monitor.
 - **[`lineup`](./docs/lineup.md)**: A dock of favorite and running apps on every
@@ -89,6 +90,7 @@ BULLPEN_POSITION=left qs -p apps/bullpen
 BULLPEN_LEFT=clock BULLPEN_CENTER=workspaces BULLPEN_RIGHT=cpu+memory,volume qs -p apps/bullpen   # "+" shares a pill
 BULLPEN_WEATHER_LOCATION=39.28,-76.62 qs -p apps/bullpen
 BULLPEN_RIGHT=feeds,clock qs -p apps/bullpen   # needs a paired pressbox
+BULLPEN_NTFY_TOPICS=mytopic BULLPEN_RIGHT=ntfy,clock qs -p apps/bullpen   # curl -d hi ntfy.sh/mytopic
 LINEUP_FAVORITES=firefox,foot qs -p apps/lineup
 OUTFIELD_WALLPAPER=~/Pictures/Wallpapers OUTFIELD_INTERVAL=1 qs -p apps/outfield
 qs -p apps/tarp &  qs -p apps/tarp ipc call tarp lock   # your password unlocks it

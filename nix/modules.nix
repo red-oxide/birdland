@@ -52,6 +52,7 @@
           "tray"
           "media"
           "feeds"
+          "ntfy"
           "dnd"
           "idle-inhibitor"
         ];
@@ -194,6 +195,51 @@
                   description = "Send a notification when new feed items arrive.";
                 };
               };
+              ntfy = {
+                server = lib.mkOption {
+                  type = lib.types.str;
+                  default = "https://ntfy.sh";
+                  example = "https://ntfy.example.org";
+                  description = "ntfy server to subscribe to.";
+                };
+                topics = lib.mkOption {
+                  type = lib.types.listOf lib.types.str;
+                  default = [ ];
+                  example = [
+                    "alerts"
+                    "backups"
+                  ];
+                  description = ''
+                    Topics to subscribe to. While any are set, Bullpen keeps a
+                    subscription open and sends each message on as a notification,
+                    whether or not the `ntfy` indicator is in the layout.
+                  '';
+                };
+                tokenFile = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  example = "/run/secrets/ntfy-token";
+                  description = ''
+                    File holding an ntfy access token (`tk_...`), for topics that need
+                    one. A string, so the token stays out of the Nix store; `~/` is
+                    your home.
+                  '';
+                };
+                notifications = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Send each ntfy message on as a desktop notification.";
+                };
+                command = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  example = "firefox --new-window https://ntfy.example.org";
+                  description = ''
+                    Shell command run by clicking the ntfy indicator. `null` opens the
+                    server's web app with `xdg-open`.
+                  '';
+                };
+              };
             };
             sessionVariables = {
               BULLPEN_POSITION = cfg.bullpen.position;
@@ -206,6 +252,12 @@
               BULLPEN_FEEDS_COMMAND = cfg.bullpen.feeds.command;
               BULLPEN_FEEDS_INTERVAL = toString cfg.bullpen.feeds.interval;
               BULLPEN_FEEDS_NOTIFICATIONS = lib.boolToString cfg.bullpen.feeds.notifications;
+              BULLPEN_NTFY_SERVER = cfg.bullpen.ntfy.server;
+              BULLPEN_NTFY_TOPICS = lib.concatStringsSep "," cfg.bullpen.ntfy.topics;
+              BULLPEN_NTFY_NOTIFICATIONS = lib.boolToString cfg.bullpen.ntfy.notifications;
+              # null as "": no token, and the default click.
+              BULLPEN_NTFY_TOKEN_FILE = toString cfg.bullpen.ntfy.tokenFile;
+              BULLPEN_NTFY_COMMAND = toString cfg.bullpen.ntfy.command;
               # Line breaks as "\n", which the bar reads as line breaks.
               BULLPEN_CLOCK_VERTICAL_FORMAT =
                 lib.replaceStrings [ "\n" ] [ "\\n" ]
@@ -462,7 +514,18 @@
             ++ lib.optional (cfg.announcer.enable && otherNotifier) ''
               programs.birdland.announcer and services.mako or services.dunst are both
               notification servers, and only one can run; disable one of them.
-            '';
+            ''
+            ++
+              lib.optional
+                (
+                  cfg.bullpen.enable
+                  && lib.elem "ntfy" (lib.flatten (with cfg.bullpen.layout; left ++ center ++ right))
+                  && cfg.bullpen.ntfy.topics == [ ]
+                )
+                ''
+                  programs.birdland.bullpen.layout has the ntfy indicator, but
+                  programs.birdland.bullpen.ntfy.topics is empty, so it stays hidden.
+                '';
 
           # Lock after inactivity, before sleep and on `loginctl lock-session`.
           services.swayidle = lib.mkIf (cfg.tarp.enable && cfg.tarp.swayidle) {

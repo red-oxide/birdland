@@ -40,12 +40,14 @@ to fit; outside the center it is capped at a quarter of the bar.
 | `media` | The playing track; click plays/pauses, right click next, middle click previous | A player with MPRIS (most do) |
 | `tray` | Tray icons; click activates, right click opens the menu | Apps with StatusNotifierItem icons |
 | `feeds` | Unread items; click opens the reader, right click refreshes the feeds | A paired [pressbox](https://github.com/red-oxide/pressbox) client |
+| `ntfy` | Unseen ntfy messages; click opens the web app, right click marks them seen | `ntfy.topics` on an [ntfy](https://ntfy.sh) server |
 | `dnd` | Announcer's do not disturb; click turns it on or off | [Announcer](./announcer.md) |
 | `idle-inhibitor` | Whether idle is inhibited; click keeps the session awake, or lets it idle | A compositor with idle-inhibit (Niri has it) |
 
 Modules with nothing to show (no battery, no GPU sensor, no weather location, no
-media player, no tray icons, no paired pressbox) hide themselves. Icons come
-from the Symbols Nerd Font, which the Home Manager module installs.
+media player, no tray icons, no paired pressbox, no ntfy topics) hide
+themselves. Icons come from the Symbols Nerd Font, which the Home Manager module
+installs.
 
 The `feeds` indicator shows unread items on a
 [pressbox](https://github.com/red-oxide/pressbox) server. It reads the server
@@ -56,6 +58,33 @@ and token from pressbox's own client files, `~/.config/pressbox/client.json`
 icon when everything is read, and a red `!` when the server can't be reached or
 rejects the token. With `feeds.notifications`, new items also send a
 notification (shown by Announcer, if you use it).
+
+Bullpen can subscribe to topics on an [ntfy](https://ntfy.sh) server, ntfy.sh or
+your own, and send each message on as a notification (shown by Announcer, if you
+use it). Set `ntfy.server` and `ntfy.topics`, and `ntfy.tokenFile` for topics
+that need an access token:
+
+```nix
+programs.birdland.bullpen.ntfy = {
+  server = "https://ntfy.example.org";
+  topics = [ "alerts" ];
+  tokenFile = "/run/secrets/ntfy-token";   # a file holding tk_...
+};
+```
+
+The subscription runs whenever topics are set, whether or not the `ntfy`
+indicator is in the layout. It is one streaming connection: messages show up as
+soon as they are published, and after a dropped connection (a suspend, a network
+change) Bullpen reconnects and asks for what it missed. Messages sent while
+Bullpen isn't running are not fetched when it starts. Priority 5 ("max")
+messages are critical notifications, which stay until dismissed and get through
+do not disturb; priority 1 and 2 are low.
+
+The `ntfy` indicator shows a dim speech bubble while nothing is new, a bright
+one with the number of messages since you last clicked it, and a red `!` while
+the server can't be reached or rejects the token. Click opens the server's web
+app (or runs `ntfy.command`); right click just marks everything seen. The token
+is handed to curl through its environment, never its command line.
 
 The `dnd` indicator shows a dim bell while notifications show and a bright
 crossed-out bell while Announcer holds them back; click to switch. It is the

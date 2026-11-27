@@ -13,6 +13,15 @@ Unreleased. Routine flake input updates and formatting commits are left out.
 
 ## Unreleased
 
+### 2026-11-25
+
+#### Added
+
+- bullpen: [ntfy](https://ntfy.sh) support. With `bullpen.ntfy.topics` set,
+  Bullpen subscribes to them on `bullpen.ntfy.server` (with
+  `bullpen.ntfy.tokenFile` for protected topics) and sends each message on as a
+  notification, and a new `ntfy` module shows the unseen count.
+
 ### 2026-11-23
 
 #### Added

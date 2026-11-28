@@ -1,0 +1,449 @@
+# SPDX-FileCopyrightText: 2026 Chris Palmer <chris@red-oxide.org>
+# SPDX-License-Identifier: GPL-3.0-only
+# The Birdland options and apps, shared by the Home Manager module and the
+# wrapper modules. `cfg` is the evaluated option tree (programs.birdland in
+# Home Manager, `settings` in a wrapper). The leading underscore keeps
+# import-tree from loading this file as a flake module.
+{
+  lib,
+  pkgs,
+  base24,
+  birdlandPkgs,
+  cfg,
+}:
+let
+  shared = import ./_options.nix { inherit lib base24; };
+  theme = shared.resolveTheme cfg.theme.scheme;
+
+  # The theme and font are baked into each app at build time.
+  appPackage =
+    name:
+    birdlandPkgs.${name}.override {
+      inherit theme;
+      fontFamily = cfg.font.family;
+    };
+
+  bullpenModule = lib.types.enum [
+    "workspaces"
+    "title"
+    "clock"
+    "date"
+    "cpu"
+    "memory"
+    "gpu"
+    "temperature"
+    "weather"
+    "network"
+    "volume"
+    "microphone"
+    "battery"
+    "tray"
+    "media"
+    "feeds"
+    "dnd"
+    "idle-inhibitor"
+  ];
+
+  # One island of the bar: a module, or modules sharing one pill.
+  bullpenIslands = lib.types.listOf (lib.types.either bullpenModule (lib.types.listOf bullpenModule));
+  # Islands as the bar reads them: comma-separated, modules in one joined
+  # with "+".
+  bullpenLayoutString = lib.concatMapStringsSep "," (
+    island: if lib.isList island then lib.concatStringsSep "+" island else island
+  );
+
+  # A wallpaper image or folder: a Nix path (copied into the store) or a
+  # string such as "~/Pictures/Wallpapers" (used where it is).
+  wallpaperSource = lib.types.either lib.types.path lib.types.str;
+  sourceString = source: if builtins.isPath source then "${source}" else source;
+
+  apps = {
+    bullpen = {
+      description = "Bullpen Status Bar for Niri";
+      extraOptions = {
+        position = shared.edge "top" "Screen edge the Bullpen bar is attached to.";
+        layout = {
+          left = lib.mkOption {
+            type = bullpenIslands;
+            default = [ "workspaces" ];
+            description = ''
+              Islands in the left part of the bar (the top on side bars), in order:
+              a module name, or a list of modules sharing one pill.
+            '';
+          };
+          center = lib.mkOption {
+            type = bullpenIslands;
+            default = [ "title" ];
+            description = ''
+              Islands in the center of the bar, in order: a module name, or a list
+              of modules sharing one pill.
+            '';
+          };
+          right = lib.mkOption {
+            type = bullpenIslands;
+            default = [
+              "tray"
+              [
+                "clock"
+                "date"
+              ]
+            ];
+            description = ''
+              Islands in the right part of the bar (the bottom on side bars), in
+              order: a module name, or a list of modules sharing one pill. Modules
+              with nothing to show (no battery, no GPU sensor, no weather location,
+              no media player, no tray icons) hide themselves, and so does an
+              island whose modules are all hidden.
+            '';
+          };
+        };
+        clock = {
+          format = lib.mkOption {
+            type = lib.types.str;
+            default = "hh:mm";
+            example = "h:mm AP";
+            description = ''
+              Time on top/bottom bars, in Qt's date format
+              (<https://doc.qt.io/qt-6/qml-qtqml-qt.html#formatDateTime-method>):
+              `HH:mm` is 24-hour time, `h:mm AP` 12-hour.
+            '';
+          };
+          verticalFormat = lib.mkOption {
+            type = lib.types.str;
+            default = "hh\nmm";
+            example = "h\nmm\nAP";
+            description = ''
+              Time on side bars, stacked: each line break (a newline, or `\n`)
+              starts a new line.
+            '';
+          };
+        };
+        date = {
+          format = lib.mkOption {
+            type = lib.types.str;
+            default = "dd MMM, yyyy";
+            example = "yyyy-MM-dd";
+            description = ''
+              Date on top/bottom bars, in Qt's date format
+              (<https://doc.qt.io/qt-6/qml-qtqml-qt.html#formatDateTime-method>):
+              `yyyy-MM-dd` is ISO 8601, `ddd MMM d` US-style.
+            '';
+          };
+          verticalFormat = lib.mkOption {
+            type = lib.types.str;
+            default = "dd\nMMM";
+            example = "MMM\nd";
+            description = ''
+              Date on side bars, stacked: each line break (a newline, or `\n`)
+              starts a new line.
+            '';
+          };
+        };
+        units = lib.mkOption {
+          type = lib.types.enum [
+            "metric"
+            "imperial"
+          ];
+          default = "metric";
+          description = "Show temperatures in °C (metric) or °F (imperial).";
+        };
+        weather = {
+          latitude = lib.mkOption {
+            type = lib.types.nullOr lib.types.number;
+            default = null;
+            example = 39.28;
+            description = "Latitude for the weather indicator, which is hidden until both coordinates are set.";
+          };
+          longitude = lib.mkOption {
+            type = lib.types.nullOr lib.types.number;
+            default = null;
+            example = -76.62;
+            description = "Longitude for the weather indicator.";
+          };
+        };
+        feeds = {
+          command = lib.mkOption {
+            type = lib.types.str;
+            default = "xdg-terminal-exec pressbox";
+            example = "foot pressbox";
+            description = ''
+              Shell command run by clicking the feeds indicator. The default
+              opens pressbox in your default terminal.
+            '';
+          };
+          interval = lib.mkOption {
+            type = lib.types.ints.between 30 3600;
+            default = 120;
+            description = "Seconds between unread-count checks.";
+          };
+          notifications = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = "Send a notification when new feed items arrive.";
+          };
+        };
+      };
+      sessionVariables = {
+        BULLPEN_POSITION = cfg.bullpen.position;
+        BULLPEN_LEFT = bullpenLayoutString cfg.bullpen.layout.left;
+        BULLPEN_CENTER = bullpenLayoutString cfg.bullpen.layout.center;
+        BULLPEN_RIGHT = bullpenLayoutString cfg.bullpen.layout.right;
+        BULLPEN_UNITS = cfg.bullpen.units;
+        BULLPEN_CLOCK_FORMAT = cfg.bullpen.clock.format;
+        BULLPEN_DATE_FORMAT = cfg.bullpen.date.format;
+        BULLPEN_FEEDS_COMMAND = cfg.bullpen.feeds.command;
+        BULLPEN_FEEDS_INTERVAL = toString cfg.bullpen.feeds.interval;
+        BULLPEN_FEEDS_NOTIFICATIONS = lib.boolToString cfg.bullpen.feeds.notifications;
+        # Line breaks as "\n", which the bar reads as line breaks.
+        BULLPEN_CLOCK_VERTICAL_FORMAT =
+          lib.replaceStrings [ "\n" ] [ "\\n" ]
+            cfg.bullpen.clock.verticalFormat;
+        BULLPEN_DATE_VERTICAL_FORMAT =
+          lib.replaceStrings [ "\n" ] [ "\\n" ]
+            cfg.bullpen.date.verticalFormat;
+      }
+      //
+        lib.optionalAttrs (cfg.bullpen.weather.latitude != null && cfg.bullpen.weather.longitude != null)
+          {
+            BULLPEN_WEATHER_LOCATION = "${toString cfg.bullpen.weather.latitude},${toString cfg.bullpen.weather.longitude}";
+          };
+    };
+    dugout = {
+      description = "Dugout App Launcher for Niri";
+      extraOptions = { };
+      sessionVariables = { };
+    };
+    lineup = {
+      description = "Lineup Favorite Apps Dock for Niri";
+      extraOptions = {
+        favorites = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          example = [
+            "firefox"
+            "foot"
+          ];
+          description = "Desktop entry IDs of the apps to show, in order.";
+        };
+        position = shared.edge "bottom" "Screen edge the Lineup dock is attached to.";
+        iconSize = lib.mkOption {
+          type = lib.types.enum [
+            16
+            22
+            24
+            32
+            48
+            64
+            96
+            128
+          ];
+          default = 32;
+          example = 48;
+          description = ''
+            Icon size in pixels, from the sizes icon themes ship so icons stay
+            sharp. The dock's thickness follows it: each slot is the icon plus
+            12 pixels for the hover highlight and the running indicator.
+          '';
+        };
+      };
+      sessionVariables = {
+        LINEUP_POSITION = cfg.lineup.position;
+        LINEUP_ICON_SIZE = toString cfg.lineup.iconSize;
+        LINEUP_FAVORITES = lib.concatStringsSep "," cfg.lineup.favorites;
+      };
+    };
+    outfield = {
+      description = "Outfield Wallpapers for Niri";
+      extraOptions = {
+        wallpaper = lib.mkOption {
+          type = lib.types.nullOr wallpaperSource;
+          default = null;
+          example = "~/Pictures/Wallpapers";
+          description = ''
+            Image, or folder of images, for every monitor. A folder rotates
+            every `interval` minutes. Without one, monitors show the theme's
+            background color.
+          '';
+        };
+        outputs = lib.mkOption {
+          type = lib.types.attrsOf wallpaperSource;
+          default = { };
+          example = {
+            "DP-1" = "~/Pictures/Ultrawide";
+          };
+          description = "Per-monitor images or folders, by output name (see `niri msg outputs`).";
+        };
+        interval = lib.mkOption {
+          type = lib.types.ints.unsigned;
+          default = 30;
+          description = "Minutes between images from a folder; 0 keeps the first one.";
+        };
+        shuffle = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Pick images from a folder at random instead of in file-name order.";
+        };
+        fill = shared.fill { };
+      };
+      # One JSON file rather than variables: paths and the per-monitor map
+      # can hold spaces and quotes, which systemd's Environment= would mangle.
+      sessionVariables = {
+        OUTFIELD_CONFIG = "${pkgs.writeText "outfield.json" (
+          builtins.toJSON {
+            wallpaper = if cfg.outfield.wallpaper == null then null else sourceString cfg.outfield.wallpaper;
+            outputs = lib.mapAttrs (_: sourceString) cfg.outfield.outputs;
+            inherit (cfg.outfield) interval shuffle fill;
+          }
+        )}";
+      };
+    };
+    announcer = {
+      description = "Announcer Notification Popups for Niri";
+      extraOptions = {
+        position = lib.mkOption {
+          type = lib.types.enum [
+            "top-right"
+            "top-left"
+            "bottom-right"
+            "bottom-left"
+          ];
+          default = "top-right";
+          description = "Corner of the focused monitor the popups show in.";
+        };
+        timeout = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 5;
+          description = "Seconds a popup stays, for apps that don't choose; critical ones stay until dismissed.";
+        };
+      };
+      sessionVariables = {
+        ANNOUNCER_POSITION = cfg.announcer.position;
+        ANNOUNCER_TIMEOUT = toString cfg.announcer.timeout;
+      };
+    };
+    jumbotron = {
+      description = "Jumbotron Volume and Brightness Pop-ups for Niri";
+      extraOptions = {
+        position = shared.edge "bottom" "Screen edge the pop-up shows near.";
+      };
+      sessionVariables = {
+        JUMBOTRON_POSITION = cfg.jumbotron.position;
+      };
+    };
+    tarp = {
+      description = "Tarp Lock Screen for Niri";
+      extraOptions = {
+        lockAfter = lib.mkOption {
+          type = lib.types.nullOr lib.types.ints.positive;
+          default = 10;
+          description = "Lock after this many minutes without input; null never locks on idle.";
+        };
+        screenOffAfter = lib.mkOption {
+          type = lib.types.nullOr lib.types.ints.positive;
+          default = 15;
+          description = ''
+            Turn the monitors off after this many minutes without input (any input
+            turns them back on); null leaves them on. Part of the swayidle setup.
+          '';
+        };
+        swayidle = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Configure services.swayidle to lock after `lockAfter` minutes, before
+            sleep and on `loginctl lock-session`. Turn off to set up idle handling
+            yourself; lock with `birdland-tarp ipc call tarp lock`.
+          '';
+        };
+        pamService = lib.mkOption {
+          type = lib.types.str;
+          default = "login";
+          description = ''
+            PAM service (a file in /etc/pam.d) that checks the password. "login"
+            exists on every NixOS system; for a dedicated one, add
+            `security.pam.services.<name> = { };` to your NixOS configuration.
+          '';
+        };
+        wallpaper = lib.mkOption {
+          type = lib.types.nullOr wallpaperSource;
+          default = null;
+          description = "Image or folder behind the lock screen; null uses outfield's wallpaper, if any.";
+        };
+        fill = shared.fill {
+          default = cfg.outfield.fill;
+          defaultText = lib.literalExpression "config.programs.birdland.outfield.fill";
+        };
+      };
+      # A lock screen that stays down leaves the session locked with no way
+      # in, so keep restarting it; the new one locks again and can unlock.
+      unit.StartLimitIntervalSec = 0;
+      service.RestartSec = 1;
+      sessionVariables = {
+        TARP_CONFIG = "${pkgs.writeText "tarp.json" (
+          builtins.toJSON {
+            wallpaper =
+              if cfg.tarp.wallpaper != null then
+                sourceString cfg.tarp.wallpaper
+              else if cfg.outfield.enable && cfg.outfield.wallpaper != null then
+                sourceString cfg.outfield.wallpaper
+              else
+                null;
+            inherit (cfg.tarp) pamService fill;
+          }
+        )}";
+      };
+    };
+  };
+
+  # One Environment= assignment, quoted so spaces (the clock format),
+  # quotes, backslashes, "%" and line breaks reach the app unchanged.
+  systemdQuote =
+    assignment:
+    let
+      escaped = lib.replaceStrings [ "\\" "\"" "%" "\n" ] [ "\\\\" "\\\"" "%%" "\\n" ] assignment;
+    in
+    "\"${escaped}\"";
+  serviceEnvironment = lib.mapAttrsToList (var: value: systemdQuote "${var}=${value}");
+
+  enabledApps = lib.filterAttrs (name: _: cfg.${name}.enable) apps;
+
+  # Locks through the running tarp, then waits until the compositor
+  # confirms every monitor is covered: swayidle runs this before sleep
+  # and holds the suspend until it exits, so the desktop never shows on
+  # resume.
+  tarpLock = pkgs.writeShellScript "birdland-tarp-lock" ''
+    tarp=${lib.getExe (appPackage "tarp")}
+    "$tarp" ipc call tarp lock
+    for _ in {1..50}; do
+      [ "$("$tarp" ipc call tarp isSecure)" = true ] && exit 0
+      ${pkgs.coreutils}/bin/sleep 0.1
+    done
+    echo "birdland-tarp-lock: the lock screen did not confirm the lock" >&2
+    exit 1
+  '';
+in
+{
+  inherit
+    apps
+    appPackage
+    enabledApps
+    serviceEnvironment
+    shared
+    tarpLock
+    ;
+
+  options = {
+    enable = lib.mkEnableOption "Birdland Quickshell Suite";
+    systemd.enable = lib.mkEnableOption "systemd user services for Birdland apps";
+
+    theme = { inherit (shared.theme) scheme; };
+    font = shared.font pkgs;
+  }
+  // lib.mapAttrs (
+    _: app:
+    {
+      enable = lib.mkEnableOption app.description;
+    }
+    // app.extraOptions
+  ) apps;
+}

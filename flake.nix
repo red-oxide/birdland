@@ -33,6 +33,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # The wrapper modules (wrapperModules.*, wrappers.*) are built on it.
+    nix-wrapper-modules = {
+      url = "github:nix-community/nix-wrapper-modules";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";

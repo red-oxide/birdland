@@ -13,6 +13,14 @@ Unreleased. Routine flake input updates and formatting commits are left out.
 
 ## Unreleased
 
+### 2026-11-27
+
+#### Added
+
+- Each app is a [nix-wrapper-modules](https://github.com/nix-community/nix-wrapper-modules)
+  wrapper (`wrappers.<app>`, `wrapperModules.<app>`) with the same settings as
+  the Home Manager module, for using Birdland without Home Manager.
+
 ### 2026-11-23
 
 #### Added

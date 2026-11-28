@@ -87,6 +87,53 @@ configurations:
 }
 ```
 
+## Wrapper Modules Usage
+
+Without Home Manager, each app is also a
+[nix-wrapper-modules](https://github.com/nix-community/nix-wrapper-modules)
+wrapper: a package with its settings baked into its environment. The settings
+are the same as `programs.birdland` above, under `settings`. Pass the same
+settings to every app you use (tarp reads outfield's wallpaper, for example):
+
+```nix
+{ inputs, pkgs, lib, ... }:
+let
+  settings = {
+    theme.scheme = "birdland";
+    font.family = "Inter";
+    bullpen = {
+      position = "top";
+      units = "imperial";
+    };
+    outfield.wallpaper = ./wallpapers;
+  };
+  wrap = name: inputs.birdland.wrappers.${name}.wrap { inherit pkgs settings; };
+  apps = lib.genAttrs [ "bullpen" "dugout" "outfield" "tarp" ] wrap;
+in
+{
+  environment.systemPackages = lib.attrValues apps ++ [ pkgs.inter pkgs.nerd-fonts.symbols-only ];
+
+  # What the Home Manager module's systemd.enable sets up, per app:
+  systemd.user.services = lib.mapAttrs (name: app: {
+    description = "Birdland ${name}";
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
+    unitConfig.ConditionEnvironment = "WAYLAND_DISPLAY";
+    serviceConfig = {
+      ExecStart = lib.getExe app;
+      Restart = "always";
+      RestartSec = 3;
+    };
+  }) apps;
+}
+```
+
+Wrappers only cover the apps themselves. The Home Manager module also installs
+the fonts, starts the apps as user services, and sets up swayidle to lock with
+tarp; with wrappers, do those yourself as above. `wrapperModules.<app>` is the
+same thing as an importable module, to extend in your own wrapper.
+
 ## Configuration Options
 
 | Option | Type | Default | Description |

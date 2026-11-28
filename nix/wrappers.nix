@@ -40,7 +40,7 @@ let
       imports = [ wlib.modules.default ];
 
       options.settings = lib.mkOption {
-        type = lib.types.submodule { options = b.options; };
+        type = lib.types.submodule { inherit (b) options; };
         default = { };
         description = ''
           Birdland settings, the same as the Home Manager module's
